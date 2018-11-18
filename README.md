@@ -11,7 +11,7 @@
 - [Contribution how-to](#contribution)
 
 ### <a name="about"/>About</a>
-Telegram bot ui tool
+Ui elements for building telegram bot
 
 
 ### <a name="installation"/>Installation</a>
