@@ -1,0 +1,11 @@
+version: '2'
+
+services:
+  test:
+    image: botarang_test
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - "./:/var/botarang/"
+    command: bash -c "coverage run --source='./botarang/' -m pytest tests -vv && coverage combine && coverage report"
