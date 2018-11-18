@@ -117,12 +117,8 @@ class View:
 
         return view
 
-    def handle(self, *args, **kwargs):
-        bot = kwargs.get("bot")
-        context = {
-            "bot": bot,
-            "view": self
-        }
+    def handle(self, context):
+        context["view"] = self
         return self.render(context)
 
 
@@ -153,26 +149,34 @@ class Bot:
                 length = entity["length"]
 
                 command = update["message"]["text"][offset:offset + length]
+                context = self.load_user_context(username, chat_id=chat_id)
 
-                self.handle_command(command, chat_id=chat_id, username=username)
+                context["bot"] = self
 
-    def handle_command(self, command, *args, **kwargs):
+                if not context.get("breadcrumbs"):
+                    context["breadcrumbs"] = []
+
+                context["breadcrumbs"].append(command)
+
+                self.handle_command(command, context)
+                self.save_user_context(username, context)
+
+    def handle_command(self, command, context):
         view = self.routes.get(command)
-        kwargs["bot"] = self
+        context["bot"] = self
 
         if view:
-            response = view.handle(*args, **kwargs)
-            self.send_response(response, *args, **kwargs)
+            response = view.handle(context)
+            self.send_response(response, context)
 
-    def send_response(self, response, *args, **kwargs):
+    def send_response(self, response, context):
         raise NotImplementedError
 
-    def set_user_keyboard_id(self, username):
+    def load_user_context(self, username, **kwargs):
         raise NotImplementedError
 
-    def get_user_keyboard_id(self, username):
+    def save_user_context(self, username, context):
         raise NotImplementedError
-
 
 __all__ = [
     "Button",
