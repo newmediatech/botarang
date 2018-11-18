@@ -43,7 +43,7 @@ START_MESSAGE = {
     ]
 }
 
-DEMO_MESSAGE = {
+SECOND_LEVEL_MESSAGE = {
     "ok": True,
     "result": [
         {
@@ -66,11 +66,47 @@ DEMO_MESSAGE = {
                     "type": "private"
                 },
                 "date": 1540000000,
-                "text": "/demo",
+                "text": "/second",
                 "entities":[
                     {
                         "offset": 0,
-                        "length": 5,
+                        "length": 7,
+                        "type": "bot_command"
+                    }
+                ]
+            }
+        }
+    ]
+}
+
+THIRD_LEVEL_MESSAGE = {
+    "ok": True,
+    "result": [
+        {
+            "update_id": 100000000,
+            "message": {
+                "message_id": 484,
+                "from": {
+                    "id": 10000000,
+                    "is_bot": False,
+                    "first_name": "",
+                    "last_name": "",
+                    "username": "text",
+                    "language_code": "ru"
+                },
+                "chat": {
+                    "id": 10000000,
+                    "first_name": "",
+                    "last_name": "",
+                    "username": "test",
+                    "type": "private"
+                },
+                "date": 1540000000,
+                "text": "/third",
+                "entities":[
+                    {
+                        "offset": 0,
+                        "length": 6,
                         "type": "bot_command"
                     }
                 ]
@@ -87,7 +123,9 @@ class AdminPanel(Row):
 
 class UserPanel(Row):
     buttons = [
-        Button("Demo", "/demo")
+        Button("Start", "/start"),
+        Button("Second", "/second"),
+        Button("Third", "/third"),
     ]
     def is_visible(self, context: dict) -> bool:
         return not context.get("is_admin", False)
@@ -103,11 +141,20 @@ class HomeView(View):
     ]
 
 
-class DemoView(View):
-    title = "Demo view"
+class SecondView(View):
+    title = "Second view"
     keyboard = [
         NavigationRow(),
-        BreadcrumbsRow()
+        BreadcrumbsRow(),
+        UserPanel(),
+    ]
+
+class ThirdView(View):
+    title = "Third view"
+    keyboard = [
+        NavigationRow(),
+        BreadcrumbsRow(),
+        UserPanel(),
     ]
 
 class BotForTest(Bot):
@@ -142,7 +189,8 @@ class ViewTestCase(TestCase):
         bot = BotForTest()
 
         bot.add_route("/start", HomeView())
-        bot.add_route("/demo", DemoView())
+        bot.add_route("/second", SecondView())
+        bot.add_route("/third", ThirdView())
 
         bot.handle_updates(START_MESSAGE)
 
@@ -151,14 +199,16 @@ class ViewTestCase(TestCase):
             "keyboard": {
                 "inline_keyboard": [
                     [
-                        {"text": "Demo", "callback_data": "/demo"}
+                        {"text": "Start", "callback_data": "/start"},
+                        {"text": "Second", "callback_data": "/second"},
+                        {"text": "Third", "callback_data": "/third"}
                     ]
                 ],
                 "resize_keyboard": True
             }
         }
 
-        bot.handle_updates(DEMO_MESSAGE)
+        bot.handle_updates(SECOND_LEVEL_MESSAGE)
 
         assert RESPONSE == {
             "text": "",
@@ -169,6 +219,50 @@ class ViewTestCase(TestCase):
                     ],
                     [
                         {"text": "Home view", "callback_data": "/start"}
+                    ],
+                    [
+                        {"text": "Start", "callback_data": "/start"},
+                        {"text": "Second", "callback_data": "/second"},
+                        {"text": "Third", "callback_data": "/third"}
+                    ]
+                ],
+                "resize_keyboard": True
+            }
+        }
+
+        bot.handle_updates(THIRD_LEVEL_MESSAGE)
+
+        assert RESPONSE == {
+            "text": "",
+            "keyboard": {
+                "inline_keyboard": [
+                    [
+                        {"text": "<- Back", "callback_data": "/second"}
+                    ],
+                    [
+                        {"text": "Home view", "callback_data": "/start"},
+                        {"text": "Second view", "callback_data": "/second"}
+                    ],
+                    [
+                        {"text": "Start", "callback_data": "/start"},
+                        {"text": "Second", "callback_data": "/second"},
+                        {"text": "Third", "callback_data": "/third"}
+                    ]
+                ],
+                "resize_keyboard": True
+            }
+        }
+
+        bot.handle_updates(START_MESSAGE)
+
+        assert RESPONSE == {
+            "text": "",
+            "keyboard": {
+                "inline_keyboard": [
+                    [
+                        {"text": "Start", "callback_data": "/start"},
+                        {"text": "Second", "callback_data": "/second"},
+                        {"text": "Third", "callback_data": "/third"}
                     ]
                 ],
                 "resize_keyboard": True

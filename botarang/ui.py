@@ -156,7 +156,11 @@ class Bot:
                 if not context.get("breadcrumbs"):
                     context["breadcrumbs"] = []
 
-                context["breadcrumbs"].append(command)
+                if command in context["breadcrumbs"]:
+                    index = context["breadcrumbs"].index(command)
+                    context["breadcrumbs"] = context["breadcrumbs"][:index]
+                else:
+                    context["breadcrumbs"].append(command)
 
                 self.handle_command(command, context)
                 self.save_user_context(username, context)
